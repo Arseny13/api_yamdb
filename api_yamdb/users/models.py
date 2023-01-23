@@ -37,6 +37,15 @@ class User(AbstractUser):
         'Адрес электронной почты',
         unique=True
     )
-    confirmation_code = models.CharField(max_length=6, default='000000')
-    role = models.CharField(max_length=9, choices=__CHOICES, default='user')
+    confirmation_code = models.CharField(
+        'Код подтверждения',
+        max_length=6,
+        default='code_is_missing'
+    )
+    role = models.CharField(
+        'Кем является',
+        max_length=9,
+        choices=__CHOICES,
+        default='user'
+    )
     objects = CustomUserManager()
