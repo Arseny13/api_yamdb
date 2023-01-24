@@ -1,8 +1,11 @@
 from rest_framework import serializers
 from rest_framework.relations import SlugRelatedField
 from rest_framework.validators import UniqueTogetherValidator
+
 from reviews.models import Category, Comment, Genre, Review, Title
 from users.models import User
+
+import datetime as dt
 
 
 class ReviewSerializer(serializers.ModelSerializer):
@@ -64,9 +67,20 @@ class GenreSerializer(serializers.ModelSerializer):
 
 class TitleSerializer(serializers.ModelSerializer):
     """Сериализатор для модели Title."""
-    genre = GenreSerializer(read_only=True, many=True)
+    category = SlugRelatedField(
+        slug_field='slug',
+        queryset=Category.objects.all()
+    )
+    genre = serializers.SlugRelatedField(
+        many=True, queryset=Genre.objects.all(), slug_field='slug')
 
     class Meta:
         """Класс мета для модели Title."""
         model = Title
-        fields = ('name', 'category', 'genre', 'year')
+        fields = ('id', 'name', 'category', 'genre', 'year')
+
+    def validate_year(self, value):
+        year = dt.date.today().year
+        if value > year:
+            raise serializers.ValidationError('Проверьте год выпуска!')
+        return value

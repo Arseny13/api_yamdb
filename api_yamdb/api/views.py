@@ -5,6 +5,7 @@ from string import ascii_lowercase, digits
 from django.contrib.auth.hashers import check_password, make_password
 from django.core.mail import send_mail
 from django.shortcuts import get_object_or_404
+from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters, status, viewsets
 from rest_framework.decorators import api_view
 from rest_framework.generics import get_object_or_404
@@ -14,11 +15,12 @@ from rest_framework.pagination import (
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import AccessToken
+from rest_framework.permissions import AllowAny
 
 from reviews.models import Category, Genre, Review, Title
 from users.models import User
 
-from .permissions import IsAdmin, IsModerator
+from .permissions import IsAdmin, IsAdminOrReadOnly
 from .serializers import (CategorySerializer, CommentSerializer,
                           ConfirmationCodeSerializer, GenreSerializer,
                           ReviewSerializer, TitleSerializer, UserSerializer)
@@ -154,7 +156,9 @@ class TitleViewSet(viewsets.ModelViewSet):
     """Класс ModelViewSet для Post."""
     queryset = Title.objects.all()
     serializer_class = TitleSerializer
-    filter_backends = (filters.SearchFilter,)
+    filter_backends = (DjangoFilterBackend,)
+    filterset_fields = ('category__slug', 'genre__slug', 'name', 'year')
+    permission_classes = (AllowAny,)
     pagination_class = PageNumberPagination
 
 
@@ -162,6 +166,8 @@ class CategoryViewSet(viewsets.ModelViewSet):
     """Класс ModelViewSet для Category."""
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
+    permission_classes = (IsAdminOrReadOnly,)
+    filter_backends = (filters.SearchFilter,)
     search_fields = ('name',)
     pagination_class = PageNumberPagination
 
@@ -170,5 +176,7 @@ class GenreViewSet(viewsets.ModelViewSet):
     """Класс ModelViewSet для Genre."""
     queryset = Genre.objects.all()
     serializer_class = GenreSerializer
+    permission_classes = (IsAdminOrReadOnly,)
+    filter_backends = (filters.SearchFilter,)
     search_fields = ('name',)
     pagination_class = PageNumberPagination
