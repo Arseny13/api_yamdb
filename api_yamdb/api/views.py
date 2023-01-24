@@ -8,7 +8,10 @@ from django.shortcuts import get_object_or_404
 from rest_framework import filters, status, viewsets
 from rest_framework.decorators import api_view
 from rest_framework.generics import get_object_or_404
-from rest_framework.pagination import LimitOffsetPagination
+from rest_framework.pagination import (
+    LimitOffsetPagination,
+    PageNumberPagination
+)
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import AccessToken
@@ -153,7 +156,7 @@ class TitleViewSet(viewsets.ModelViewSet):
     queryset = Title.objects.all()
     serializer_class = TitleSerializer
     filter_backends = (filters.SearchFilter,)
-    pagination_class = LimitOffsetPagination
+    pagination_class = PageNumberPagination
 
 
 class CategoryViewSet(viewsets.ModelViewSet):
@@ -161,7 +164,7 @@ class CategoryViewSet(viewsets.ModelViewSet):
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
     search_fields = ('name',)
-    pagination_class = LimitOffsetPagination
+    pagination_class = PageNumberPagination
 
 
 class GenreViewSet(viewsets.ModelViewSet):
@@ -169,4 +172,4 @@ class GenreViewSet(viewsets.ModelViewSet):
     queryset = Genre.objects.all()
     serializer_class = GenreSerializer
     search_fields = ('name',)
-    pagination_class = LimitOffsetPagination
+    pagination_class = PageNumberPagination
