@@ -6,6 +6,7 @@ User = get_user_model()
 
 
 class Review(models.Model):
+    """Модель отзывов."""
     text = models.TextField()
     pub_date = models.DateTimeField(
         verbose_name='Дата публикации', auto_now_add=True
@@ -37,6 +38,7 @@ class Review(models.Model):
 
 
 class Comment(models.Model):
+    """Модель комментариев."""
     author = models.ForeignKey(
         User, on_delete=models.CASCADE, verbose_name='Автор',
         related_name='comments'
