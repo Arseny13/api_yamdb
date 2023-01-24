@@ -1,43 +1,29 @@
 from django.core.management.base import BaseCommand
-import csv
+from django.contrib.contenttypes.models import ContentType
 
-from reviews.models import Genre, Category, Title, GenreTitle
+import csv
 
 
 class Command(BaseCommand):
-    help = 'Создает Genre из csv'
+    help = 'Создает Данные из csv, параметр название файла'
 
     def add_arguments(self, parser):
         parser.add_argument('file', type=str, help='Путь к файлу')
 
     def handle(self, *args, **kwargs):
-        name = kwargs['file']
-        file = f'static/data/{name}.csv'
+        file_name = kwargs['file']
+        if file_name == 'titles':
+            name = 'title'
+        else:
+            name = ''.join(file_name.split('_'))
+        model = ContentType.objects.get(
+            app_label='reviews',
+            model=name
+        )
+        file = f'static/data/{file_name}.csv'
         with open(file, "r", encoding="utf-8-sig") as csv_file:
             data = csv.DictReader(csv_file, delimiter=",")
-            if name == 'genre':
-                for row in data:
-                    Genre.objects.update_or_create(
-                        name=row['name'],
-                        slug=row['slug']
-                    )
-            elif name == 'category':
-                for row in data:
-                    Category.objects.update_or_create(
-                        name=row['name'],
-                        slug=row['slug']
-                    )
-            elif name == 'titles':
-                for row in data:
-                    Title.objects.update_or_create(
-                        name=row['name'],
-                        year=row['year'],
-                        category_id=row['category']
-                    )
-            elif name == 'genre_title':
-                for row in data:
-                    print(row)
-                    GenreTitle.objects.update_or_create(
-                        title=row['title_id'],
-                        genre=row['genre_id'],
-                    )
+            for row in data:
+                model.model_class().objects.update_or_create(
+                    **row
+                )
