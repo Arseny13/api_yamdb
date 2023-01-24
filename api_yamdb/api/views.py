@@ -19,12 +19,14 @@ from rest_framework.permissions import AllowAny
 
 from reviews.models import Category, Genre, Review, Title
 from users.models import User
-
-from .permissions import IsAdmin, IsAdminOrReadOnly
-from .serializers import (CategorySerializer, CommentSerializer,
-                          ConfirmationCodeSerializer, GenreSerializer,
-                          ReviewSerializer, TitleSerializer, UserSerializer)
-
+from api.filters import TitleFilter
+from api.permissions import IsAdmin, IsAdminOrReadOnly
+from api.serializers import (
+    CategorySerializer, CommentSerializer,
+    ConfirmationCodeSerializer, GenreSerializer,
+    ReviewSerializer, TitleSerializerCreate,
+    TitleSerializer, UserSerializer
+)
 CONFIRMATION_CODE_CHARS = tuple(ascii_lowercase + digits)
 
 
@@ -155,11 +157,19 @@ def get_token(request):
 class TitleViewSet(viewsets.ModelViewSet):
     """Класс ModelViewSet для Post."""
     queryset = Title.objects.all()
-    serializer_class = TitleSerializer
     filter_backends = (DjangoFilterBackend,)
-    filterset_fields = ('category__slug', 'genre__slug', 'name', 'year')
-    permission_classes = (AllowAny,)
+    filterset_class = TitleFilter
+    permission_classes = (IsAdminOrReadOnly,)
     pagination_class = PageNumberPagination
+
+    def get_serializer_class(self):
+        if (
+            self.action == 'create'
+            or self.action == 'update'
+            or self.action == 'partial_update'
+        ):
+            return TitleSerializerCreate
+        return TitleSerializer
 
 
 class CategoryViewSet(viewsets.ModelViewSet):

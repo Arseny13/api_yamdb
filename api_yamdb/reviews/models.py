@@ -20,13 +20,14 @@ class Genre(models.Model):
         help_text='Введите слаг жанра',
     )
 
-    def __str__(self) -> str:
-        return self.name
-
     class Meta:
         """Класс Meta для Genres описание метаданных."""
+        ordering = ('id',)
         verbose_name = 'genre'
         verbose_name_plural = 'genres'
+
+    def __str__(self) -> str:
+        return self.name
 
 
 class Category(models.Model):
@@ -43,13 +44,14 @@ class Category(models.Model):
         help_text='Введите слаг категории',
     )
 
-    def __str__(self) -> str:
-        return self.name
-
     class Meta:
         """Класс Meta для Categories описание метаданных."""
+        ordering = ('id',)
         verbose_name = 'category'
         verbose_name_plural = 'categories'
+
+    def __str__(self) -> str:
+        return self.name
 
 
 class Title(models.Model):
@@ -78,9 +80,15 @@ class Title(models.Model):
         help_text='Введите год выпуска',
     )
     description = models.TextField(
-        null=True,
-        blank=True,
+        verbose_name='Описание тайтла',
+        help_text='Введите описание тайтла'
     )
+
+    class Meta:
+        """Класс Meta для Title описание метаданных."""
+        ordering = ('id',)
+        verbose_name = 'title'
+        verbose_name_plural = 'titles'
 
     def __str__(self):
         return self.name

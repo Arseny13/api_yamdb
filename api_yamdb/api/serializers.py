@@ -53,7 +53,7 @@ class CategorySerializer(serializers.ModelSerializer):
     """Сериализатор для модели Category."""
     class Meta:
         """Класс мета для модели Category."""
-        fields = ('id', 'name', 'slug')
+        fields = ('name', 'slug')
         model = Category
 
 
@@ -61,12 +61,12 @@ class GenreSerializer(serializers.ModelSerializer):
     """Сериализатор для модели Genre."""
     class Meta:
         """Класс мета для модели Genre."""
-        fields = ('id', 'name', 'slug')
+        fields = ('name', 'slug')
         model = Genre
 
 
-class TitleSerializer(serializers.ModelSerializer):
-    """Сериализатор для модели Title."""
+class TitleSerializerCreate(serializers.ModelSerializer):
+    """Сериализатор при создании для модели Title."""
     category = SlugRelatedField(
         slug_field='slug',
         queryset=Category.objects.all()
@@ -77,10 +77,21 @@ class TitleSerializer(serializers.ModelSerializer):
     class Meta:
         """Класс мета для модели Title."""
         model = Title
-        fields = ('id', 'name', 'category', 'genre', 'year')
+        fields = ('id', 'name', 'description', 'category', 'genre', 'year')
 
     def validate_year(self, value):
         year = dt.date.today().year
         if value > year:
             raise serializers.ValidationError('Проверьте год выпуска!')
         return value
+
+
+class TitleSerializer(serializers.ModelSerializer):
+    """Сериализатор для модели Title."""
+    category = CategorySerializer()
+    genre = GenreSerializer(many=True)
+
+    class Meta:
+        """Класс мета для модели Title."""
+        model = Title
+        fields = ('id', 'name', 'description', 'category', 'genre', 'year')
