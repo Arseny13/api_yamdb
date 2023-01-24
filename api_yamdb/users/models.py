@@ -1,6 +1,7 @@
 from django.contrib.auth.models import AbstractUser, BaseUserManager
 from django.db import models
-
+from django.contrib.auth.validators import UnicodeUsernameValidator
+from .validator import username_value_not_me
 
 class CustomUserManager(BaseUserManager):
     """Класс для создания обычного пользователя/суперпользователя."""
@@ -43,10 +44,13 @@ class User(AbstractUser):
         ('admin', 'Администратор'),
     )
 
+    username_validator = UnicodeUsernameValidator()
+
     username = models.CharField(
         'Ник пользователя',
         max_length=150,
-        unique=True
+        unique=True,
+        validators=[username_validator, username_value_not_me]
     )
 
     first_name = models.CharField(
