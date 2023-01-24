@@ -10,8 +10,11 @@ from rest_framework import filters, status, viewsets
 from rest_framework.decorators import api_view
 from rest_framework.generics import get_object_or_404
 from rest_framework.pagination import (
-    LimitOffsetPagination, PageNumberPagination
+    LimitOffsetPagination,
+    PageNumberPagination
 )
+from .pagination import UserPagination
+
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import AccessToken
@@ -76,15 +79,13 @@ class CommentViewSet(viewsets.ModelViewSet):
 
 class APIUser(APIView):
     """Класс для переопределения запросов GET и PATCH"""
+    pagination_class = UserPagination
     def get(self, request):
         if request.user.is_authenticated:
             user = get_object_or_404(User, id=request.user.id)
             serializer = UserSerializer(user)
             return Response(serializer.data)
-        return Response(
-            'Вы не авторизованы',
-            status=status.HTTP_401_UNAUTHORIZED
-        )
+        return Response('Вы не авторизованы', status=status.HTTP_401_UNAUTHORIZED)
 
     def patch(self, request):
         if request.user.is_authenticated:
@@ -93,12 +94,12 @@ class APIUser(APIView):
             if serializer.is_valid():
                 serializer.save()
                 return Response(serializer.data, status=status.HTTP_200_OK)
-            return Response(serializer.errors,
-                            status=status.HTTP_400_BAD_REQUEST
-                            )
-        return Response('Вы не авторизованы',
-                        status=status.HTTP_401_UNAUTHORIZED
-                        )
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        return Response('Вы не авторизованы', status=status.HTTP_401_UNAUTHORIZED)
+
+
+        
+
 
 
 class UserViewSet(viewsets.ModelViewSet):
@@ -129,12 +130,10 @@ def send_mail(request):
                 confirmation_code, salt=None, hasher='default'
             )
         )
-        mail_subject = 'Код подтверждения'
-        message = confirmation_code
-        send_mail(mail_subject, message, [email])
-        return Response(f'Код отправлен на почту {email}',
-                        status=status.HTTP_200_OK
-                        )
+        mail_subject = 'Код подтверждения на Yamdb.ru'
+        message = f'Ваш код подтверждения: {confirmation_code}'
+        send_mail(mail_subject, message, 'Yamdb.ru <admin@yamdb.ru>', [email])
+        return Response(f'Код отправлен на почту {email}', status=status.HTTP_200_OK)
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
@@ -148,7 +147,7 @@ def get_token(request):
         user = get_object_or_404(User, email=email)
         if check_password(confirmation_code, user.confirmation_code):
             token = AccessToken.for_user(user)
-            return Response({'token': f'{token}'}, status=status.HTTP_200_OK)
+            return Response({'token': f'{token}'}, status=status.HTTP_201_CREATED)
         return Response({'confirmation_code': 'Неверный код подтверждения'},
                         status=status.HTTP_400_BAD_REQUEST)
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -157,6 +156,7 @@ def get_token(request):
 class TitleViewSet(viewsets.ModelViewSet):
     """Класс ModelViewSet для Post."""
     queryset = Title.objects.all()
+
     filter_backends = (DjangoFilterBackend,)
     filterset_class = TitleFilter
     permission_classes = (IsAdminOrReadOnly,)
@@ -170,6 +170,7 @@ class TitleViewSet(viewsets.ModelViewSet):
         ):
             return TitleSerializerCreate
         return TitleSerializer
+
 
 
 class CategoryViewSet(viewsets.ModelViewSet):

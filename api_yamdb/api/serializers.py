@@ -94,4 +94,6 @@ class TitleSerializer(serializers.ModelSerializer):
     class Meta:
         """Класс мета для модели Title."""
         model = Title
+
         fields = ('id', 'name', 'description', 'category', 'genre', 'year')
+
