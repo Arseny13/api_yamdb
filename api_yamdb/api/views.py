@@ -1,31 +1,28 @@
 
-from rest_framework import viewsets
-from rest_framework.generics import get_object_or_404
-from rest_framework.pagination import LimitOffsetPagination
-from rest_framework.permissions import (IsAuthenticated,
-                                        IsAuthenticatedOrReadOnly)
-
-from reviews.models import Comment, Review, Title
-# from .permissions import IsOwnerOrReadOnly
-from .serializers import (CommentSerializer,
-                          ReviewSerializer)
 from random import choice
 from string import ascii_lowercase, digits
 
-from django.shortcuts import get_object_or_404
+from django.contrib.auth.hashers import check_password, make_password
 from django.core.mail import send_mail
+from django.shortcuts import get_object_or_404
+from rest_framework import filters, status, viewsets
 from rest_framework.decorators import api_view
-from rest_framework.views import APIView
+from rest_framework.generics import get_object_or_404
+from rest_framework.pagination import LimitOffsetPagination
 from rest_framework.response import Response
-from rest_framework import viewsets, filters, status
-from django.contrib.auth.hashers import make_password, check_password
+from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import AccessToken
 
+from reviews.models import Category, Genre, Review, Title
 from users.models import User
-from .serializers import ConfirmationCodeSerializer, UserSerializer
+
 from .permissions import IsAdmin
+from .serializers import (CategorySerializer, CommentSerializer,
+                          ConfirmationCodeSerializer, GenreSerializer,
+                          ReviewSerializer, TitleSerializer, UserSerializer)
 
 CONFIRMATION_CODE_CHARS = tuple(ascii_lowercase + digits)
+
 
 class ReviewViewSet(viewsets.ModelViewSet):
     """Вьюсет модели отзывов."""
@@ -69,9 +66,6 @@ class CommentViewSet(viewsets.ModelViewSet):
             author=self.request.user,
             review=self.get_review()
         )
-
-
-
 
 
 class APIUser(APIView):
@@ -153,12 +147,6 @@ def get_token(request):
                         status=status.HTTP_400_BAD_REQUEST)
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-from rest_framework import filters, viewsets
-from rest_framework.pagination import LimitOffsetPagination
-
-from .serializers import (TitleSerializer, CategorySerializer, GenreSerializer)
-from reviews.models import Title, Category, Genre
-
 
 class TitleViewSet(viewsets.ModelViewSet):
     """Класс ModelViewSet для Post."""
@@ -182,4 +170,3 @@ class GenreViewSet(viewsets.ModelViewSet):
     serializer_class = GenreSerializer
     search_fields = ('name',)
     pagination_class = LimitOffsetPagination
-

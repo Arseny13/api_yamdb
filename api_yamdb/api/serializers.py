@@ -1,11 +1,9 @@
 from rest_framework import serializers
-
 from rest_framework.relations import SlugRelatedField
 from rest_framework.validators import UniqueTogetherValidator
-
-from reviews.models import Comment, Review,  Title, Category, Genre
-
+from reviews.models import Category, Comment, Genre, Review, Title
 from users.models import User
+
 
 class ReviewSerializer(serializers.ModelSerializer):
     """Сериализатор модели отзывов."""
@@ -35,7 +33,6 @@ class CommentSerializer(serializers.ModelSerializer):
         exclude = ('review',)
 
 
-
 class UserSerializer(serializers.ModelSerializer):
     """Сериализатор для модели пользователя."""
     class Meta:
@@ -47,9 +44,6 @@ class ConfirmationCodeSerializer(serializers.Serializer):
     """Сериализатор для кода подтверждения."""
     email = serializers.EmailField(required=True)
     confirmation_code = serializers.CharField(required=True)
-
-
-
 
 
 class CategorySerializer(serializers.ModelSerializer):
@@ -76,5 +70,3 @@ class TitleSerializer(serializers.ModelSerializer):
         """Класс мета для модели Title."""
         model = Title
         fields = ('name', 'category', 'genre', 'year')
-
-
