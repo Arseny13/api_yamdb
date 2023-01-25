@@ -20,6 +20,7 @@ from rest_framework_simplejwt.tokens import AccessToken
 from reviews.models import Category, Comment, Genre, Review, Title
 
 from users.models import User
+
 from api.filters import TitleFilter
 from api.mixins import CreateListDestroyViewSet
 from api.permissions import IsAdmin, IsAdminOrReadOnly, IsReadOnly
@@ -28,7 +29,8 @@ from api.serializers import (
     TokenSerializer,
     SignUpSerializer, GenreSerializer,
     ReviewSerializer, TitleSerializerCreate,
-    TitleSerializer, UserSerializer
+    TitleSerializer, UserSerializer,
+    MeSerializer
 )
 
 
@@ -97,7 +99,7 @@ class APIUser(APIView):
     def patch(self, request):
         if request.user.is_authenticated:
             user = get_object_or_404(User, id=request.user.id)
-            serializer = UserSerializer(user, data=request.data, partial=True)
+            serializer = MeSerializer(user, data=request.data, partial=True)
             if serializer.is_valid():
                 serializer.save()
                 return Response(serializer.data, status=status.HTTP_200_OK)
@@ -115,6 +117,7 @@ class UserViewSet(viewsets.ModelViewSet):
     """Класс UserViewSet для User."""
     queryset = User.objects.all()
     serializer_class = UserSerializer
+    http_method_names = ['get', 'post', 'head', 'patch', 'delete']
     lookup_field = 'username'
     permission_classes = [IsAdmin]
     filter_backends = [filters.SearchFilter]
@@ -139,7 +142,6 @@ def send_code(request):
             email=email
         )
         User.objects.filter(username=username, email=email).update(
-
             confirmation_code=make_password(
                 confirmation_code, salt=None, hasher='default'
             )

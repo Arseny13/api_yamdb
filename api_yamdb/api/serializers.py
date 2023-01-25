@@ -41,6 +41,25 @@ class CommentSerializer(serializers.ModelSerializer):
         exclude = ('review',)
 
 
+class MeSerializer(serializers.ModelSerializer):
+    """Сериализатор для модели пользователя."""
+    email = serializers.EmailField(max_length=254, required=True)
+    username = serializers.CharField(max_length=150, required=True)
+
+    class Meta:
+        model = User
+        fields = (
+            'username', 'email',
+            'first_name', 'last_name', 'bio'
+        )
+
+    def validate_username(self, value):
+        regex = re.compile(r'^[\w.@+-]+$')
+        if not re.fullmatch(regex, value):
+            raise serializers.ValidationError('Проверьте username!')
+        return value
+
+
 class UserSerializer(serializers.ModelSerializer):
     """Сериализатор для модели пользователя."""
     email = serializers.EmailField(max_length=254, required=True)
@@ -53,6 +72,22 @@ class UserSerializer(serializers.ModelSerializer):
             'username', 'email', 'role',
             'first_name', 'last_name', 'bio'
         )
+
+    def validate(self, data):
+        """Проверка на повторные email."""
+        email = data.get('email')
+        username = data.get('username')
+        if User.objects.filter(email=email).exists():
+            user = User.objects.get(email=email)
+            if user.username != username:
+                raise serializers.ValidationError(
+                    'Уже username  c данной почтой существует!'
+                )
+        if User.objects.filter(username=username).exists():
+            user = User.objects.get(username=username)
+            if user.email != email:
+                raise serializers.ValidationError('Уже существует!')
+        return data
 
     def validate_username(self, value):
         regex = re.compile(r'^[\w.@+-]+$')
@@ -76,16 +111,32 @@ class SignUpSerializer(serializers.Serializer):
     email = serializers.EmailField(max_length=254, required=True)
     username = serializers.CharField(max_length=150, required=True)
 
-
     class Meta:
         fields = ('username', 'email')
+
+    def validate(self, data):
+        """Проверка на повторные email."""
+        email = data.get('email')
+        username = data.get('username')
+        if User.objects.filter(email=email).exists():
+            user = User.objects.get(email=email)
+            if user.username != username:
+                raise serializers.ValidationError(
+                    'Уже username  c данной почтой существует!'
+                )
+        if User.objects.filter(username=username).exists():
+            user = User.objects.get(username=username)
+            if user.email != email:
+                raise serializers.ValidationError('Уже существует!')
+        return data
 
     def validate_username(self, value):
         regex = re.compile(r'^[\w.@+-]+$')
         if not re.fullmatch(regex, value):
             raise serializers.ValidationError('Проверьте username!')
+        if value == 'me':
+            raise serializers.ValidationError('Me запрещено')
         return value
-
 
 
 class CategorySerializer(serializers.ModelSerializer):
@@ -140,5 +191,3 @@ class TitleSerializer(serializers.ModelSerializer):
     def get_rating(self, obj):
         rating = obj.reviews.aggregate(Avg('score')).get('score__avg')
         return rating
-
-
