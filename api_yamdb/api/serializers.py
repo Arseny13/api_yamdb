@@ -3,9 +3,10 @@ from rest_framework.relations import SlugRelatedField
 from rest_framework.validators import UniqueTogetherValidator
 
 from reviews.models import Category, Comment, Genre, Review, Title
-from users.models import User
+from users.models import User, CHOICES
 
 import datetime as dt
+import re
 
 
 class ReviewSerializer(serializers.ModelSerializer):
@@ -38,9 +39,22 @@ class CommentSerializer(serializers.ModelSerializer):
 
 class UserSerializer(serializers.ModelSerializer):
     """Сериализатор для модели пользователя."""
+    email = serializers.EmailField(max_length=254, required=True)
+    username = serializers.CharField(max_length=150, required=True)
+    role = serializers.ChoiceField(choices=CHOICES, default='user')
+
     class Meta:
         model = User
-        fields = '__all__'
+        fields = (
+            'username', 'email', 'role',
+            'first_name', 'last_name', 'bio'
+        )
+
+    def validate_username(self, value):
+        regex = re.compile(r'^[\w.@+-]+$')
+        if not re.fullmatch(regex, value):
+            raise serializers.ValidationError('Проверьте username!')
+        return value
 
 
 class TokenSerializer(serializers.Serializer):
@@ -62,7 +76,8 @@ class SignUpSerializer(serializers.Serializer):
         fields = ('username', 'email')
 
     def validate_username(self, value):
-        if value != r'^[\w.@+-]+\z$':
+        regex = re.compile(r'^[\w.@+-]+$')
+        if not re.fullmatch(regex, value):
             raise serializers.ValidationError('Проверьте username!')
         return value
 

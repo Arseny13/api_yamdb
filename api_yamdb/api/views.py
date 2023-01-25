@@ -2,7 +2,7 @@
 from random import choice
 from string import ascii_lowercase, digits
 
-from django.contrib.auth.hashers import make_password
+from django.contrib.auth.hashers import make_password, check_password
 from django.core.mail import send_mail
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
@@ -146,28 +146,31 @@ def send_code(request):
         message = f'Ваш код подтверждения: {confirmation_code}'
         send_mail(mail_subject, message, 'Yamdb.ru <admin@yamdb.ru>', [email])
         return Response(
-            f'Код отправлен на почту {email}',
+            serializer.data,
             status=status.HTTP_200_OK
         )
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 @api_view(['POST'])
+@permission_classes([AllowAny])
 def get_token(request):
     """Получает JWT-токен"""
     serializer = TokenSerializer(data=request.data)
     if serializer.is_valid():
         username = serializer.data.get('username')
         confirmation_code = serializer.data.get('confirmation_code')
-        user, status = get_object_or_404(
+        user = get_object_or_404(
             User, username=username,
-            confirmation_code=confirmation_code
         )
-        token = AccessToken.for_user(user)
-        return Response(
-            {'token': f'{token}'},
-            status=status.HTTP_201_CREATED
-        )
+        if check_password(confirmation_code, user.confirmation_code):
+            token = AccessToken.for_user(user)
+            return Response(
+                {'token': f'{token}'},
+                status=status.HTTP_201_CREATED
+            )
+        return Response({'confirmation_code': 'Неверный код подтверждения'},
+                        status=status.HTTP_400_BAD_REQUEST)
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
