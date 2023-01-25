@@ -1,8 +1,11 @@
 from rest_framework import serializers
 from rest_framework.relations import SlugRelatedField
 from rest_framework.validators import UniqueTogetherValidator
+
 from reviews.models import Category, Comment, Genre, Review, Title
 from users.models import User
+
+import datetime as dt
 
 
 class ReviewSerializer(serializers.ModelSerializer):
@@ -50,7 +53,7 @@ class CategorySerializer(serializers.ModelSerializer):
     """Сериализатор для модели Category."""
     class Meta:
         """Класс мета для модели Category."""
-        fields = ('id', 'name', 'slug')
+        fields = ('name', 'slug')
         model = Category
 
 
@@ -58,16 +61,39 @@ class GenreSerializer(serializers.ModelSerializer):
     """Сериализатор для модели Genre."""
     class Meta:
         """Класс мета для модели Genre."""
-        fields = ('id', 'name', 'slug')
+        fields = ('name', 'slug')
         model = Genre
 
 
-class TitleSerializer(serializers.ModelSerializer):
-    """Сериализатор для модели Title."""
-    genre = GenreSerializer(read_only=True, many=True)
+class TitleSerializerCreate(serializers.ModelSerializer):
+    """Сериализатор при создании для модели Title."""
+    category = SlugRelatedField(
+        slug_field='slug',
+        queryset=Category.objects.all()
+    )
+    genre = serializers.SlugRelatedField(
+        many=True, queryset=Genre.objects.all(), slug_field='slug')
 
     class Meta:
         """Класс мета для модели Title."""
         model = Title
-        fields = ('name', 'category', 'genre', 'year')
+        fields = ('id', 'name', 'description', 'category', 'genre', 'year')
+
+    def validate_year(self, value):
+        year = dt.date.today().year
+        if value > year:
+            raise serializers.ValidationError('Проверьте год выпуска!')
+        return value
+
+
+class TitleSerializer(serializers.ModelSerializer):
+    """Сериализатор для модели Title."""
+    category = CategorySerializer()
+    genre = GenreSerializer(many=True)
+
+    class Meta:
+        """Класс мета для модели Title."""
+        model = Title
+
+        fields = ('id', 'name', 'description', 'category', 'genre', 'year')
 

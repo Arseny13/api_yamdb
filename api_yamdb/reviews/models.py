@@ -20,13 +20,14 @@ class Genre(models.Model):
         help_text='Введите слаг жанра',
     )
 
-    def __str__(self) -> str:
-        return self.name
-
     class Meta:
         """Класс Meta для Genres описание метаданных."""
+        ordering = ('id',)
         verbose_name = 'genre'
         verbose_name_plural = 'genres'
+
+    def __str__(self) -> str:
+        return self.name
 
 
 class Category(models.Model):
@@ -43,26 +44,26 @@ class Category(models.Model):
         help_text='Введите слаг категории',
     )
 
-    def __str__(self) -> str:
-        return self.name
-
     class Meta:
         """Класс Meta для Categories описание метаданных."""
+        ordering = ('id',)
         verbose_name = 'category'
         verbose_name_plural = 'categories'
+
+    def __str__(self) -> str:
+        return self.name
 
 
 class Title(models.Model):
     """Класс произведения"""
     name = models.CharField(
-        max_length=200,
+        max_length=256,
         verbose_name='Name произведения',
         help_text='Введите имя произведения',
     )
     category = models.ForeignKey(
         Category,
         related_name='titles',
-        blank=True,
         null=True,
         on_delete=models.SET_NULL,
         verbose_name='Категория',
@@ -71,12 +72,23 @@ class Title(models.Model):
     genre = models.ManyToManyField(
         Genre,
         through='GenreTitle',
-        blank=True,
     )
     year = models.IntegerField(
         null=True,
         blank=True,
+        verbose_name='Год выпуска',
+        help_text='Введите год выпуска',
     )
+    description = models.TextField(
+        verbose_name='Описание тайтла',
+        help_text='Введите описание тайтла'
+    )
+
+    class Meta:
+        """Класс Meta для Title описание метаданных."""
+        ordering = ('id',)
+        verbose_name = 'title'
+        verbose_name_plural = 'titles'
 
     def __str__(self):
         return self.name
