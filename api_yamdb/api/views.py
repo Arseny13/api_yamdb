@@ -1,4 +1,3 @@
-
 from random import choice
 from string import ascii_lowercase, digits
 
@@ -9,27 +8,28 @@ from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters, status, viewsets
 from rest_framework.decorators import api_view
 from rest_framework.generics import get_object_or_404
-from rest_framework.pagination import (
-    LimitOffsetPagination,
-    PageNumberPagination
-)
+from rest_framework.pagination import PageNumberPagination
+
+
 from .pagination import UserPagination
 
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import AccessToken
 
-from reviews.models import Category, Genre, Review, Title
+from reviews.models import Category, Comment, Genre, Review, Title
 from users.models import User
 from api.filters import TitleFilter
 from api.mixins import CreateListDestroyViewSet
-from api.permissions import IsAdmin, IsAdminOrReadOnly
+from api.permissions import IsAdmin, IsAdminOrReadOnly, IsReadOnly
 from api.serializers import (
     CategorySerializer, CommentSerializer,
     ConfirmationCodeSerializer, GenreSerializer,
-    ReviewSerializer, TitleSerializerCreate,
+    ReviewSerializer, SignUpSerializer, TitleSerializerCreate,
     TitleSerializer, UserSerializer
 )
+
+
 CONFIRMATION_CODE_CHARS = tuple(ascii_lowercase + digits)
 
 
@@ -37,8 +37,8 @@ class ReviewViewSet(viewsets.ModelViewSet):
     """Вьюсет модели отзывов."""
     queryset = Review.objects.all()
     serializer_class = ReviewSerializer
-    # permission_classes = (IsAuthenticatedOrReadOnly, IsOwnerOrReadOnly)
-    pagination_class = LimitOffsetPagination
+    permission_classes = (IsReadOnly,)
+    pagination_class = PageNumberPagination
 
     def get_title(self):
         """Получение текущего объекта произведения (title)."""
@@ -56,14 +56,15 @@ class ReviewViewSet(viewsets.ModelViewSet):
 
 
 class CommentViewSet(viewsets.ModelViewSet):
-    """Вюсет модели комментариев."""
+    """Вьюсет модели комментариев."""
+    queryset = Comment.objects.all()
     serializer_class = CommentSerializer
-    # permission_classes = (IsAuthenticatedOrReadOnly, IsOwnerOrReadOnly)
-    pagination_class = LimitOffsetPagination
+    permission_classes = (IsReadOnly,)
+    pagination_class = PageNumberPagination
 
     def get_review(self):
         """Получение текущего объекта отзыва (review)."""
-        return get_object_or_404(Title, pk=self.kwargs.get('review_id'))
+        return get_object_or_404(Review, pk=self.kwargs.get('review_id'))
 
     def get_queryset(self):
         """Получение выборки с комментариями текущего отзыва."""
@@ -115,14 +116,15 @@ class UserViewSet(viewsets.ModelViewSet):
     lookup_field = 'username'
     permission_classes = [IsAdmin]
     filter_backends = [filters.SearchFilter]
-    search_fields = ['user__username', ]
+    search_fields = ['username',]
 
 
 @api_view(['POST'])
-def send_mail(request):
+def send_email(request):
     """Отправляет код подтверждения на e-mail."""
-    serializer = ConfirmationCodeSerializer(data=request.data)
+    serializer = SignUpSerializer(data=request.data)
     email = request.data.get('email', False)
+    username = request.data.get('username', False)
     if serializer.is_valid():
         cc_lst = []
         for number_of_symbols in range(16):
@@ -130,7 +132,7 @@ def send_mail(request):
         confirmation_code = ''.join(cc_lst)
         user = User.objects.filter(email=email).exists()
         if not user:
-            User.objects.create_user(email=email)
+            User.objects.create_user(email=email, username=username)
         User.objects.filter(email=email).update(
             confirmation_code=make_password(
                 confirmation_code, salt=None, hasher='default'
@@ -151,9 +153,9 @@ def get_token(request):
     """Получает JWT-токен"""
     serializer = ConfirmationCodeSerializer(data=request.data)
     if serializer.is_valid():
-        email = serializer.data.get('email')
-        confirmation_code = serializer.data.get('confirmation_code')
-        user = get_object_or_404(User, email=email)
+        username = serializer.initial_data.get('username')
+        confirmation_code = serializer.initial_data.get('confirmation_code')
+        user = get_object_or_404(User, username=username)
         if check_password(confirmation_code, user.confirmation_code):
             token = AccessToken.for_user(user)
             return Response(
