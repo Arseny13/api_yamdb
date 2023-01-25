@@ -3,9 +3,10 @@ from rest_framework.relations import SlugRelatedField
 from rest_framework.validators import UniqueTogetherValidator
 
 from reviews.models import Category, Comment, Genre, Review, Title
-from users.models import User
+from users.models import User, CHOICES
 
 import datetime as dt
+import re
 
 
 class ReviewSerializer(serializers.ModelSerializer):
@@ -38,15 +39,47 @@ class CommentSerializer(serializers.ModelSerializer):
 
 class UserSerializer(serializers.ModelSerializer):
     """Сериализатор для модели пользователя."""
+    email = serializers.EmailField(max_length=254, required=True)
+    username = serializers.CharField(max_length=150, required=True)
+    role = serializers.ChoiceField(choices=CHOICES, default='user')
+
     class Meta:
         model = User
-        fields = '__all__'
+        fields = (
+            'username', 'email', 'role',
+            'first_name', 'last_name', 'bio'
+        )
+
+    def validate_username(self, value):
+        regex = re.compile(r'^[\w.@+-]+$')
+        if not re.fullmatch(regex, value):
+            raise serializers.ValidationError('Проверьте username!')
+        return value
 
 
-class ConfirmationCodeSerializer(serializers.Serializer):
-    """Сериализатор для кода подтверждения."""
-    email = serializers.EmailField(required=True)
-    confirmation_code = serializers.CharField(required=True)
+class TokenSerializer(serializers.Serializer):
+    """Сериализатор для токена."""
+    username = serializers.CharField(max_length=150, required=True)
+    confirmation_code = serializers.CharField(max_length=15, required=True)
+
+    class Meta:
+        model = User
+        fields = ('username', 'confirmation_code')
+
+
+class SignUpSerializer(serializers.Serializer):
+    """Сериализатор для регистариции."""
+    email = serializers.EmailField(max_length=254, required=True)
+    username = serializers.CharField(max_length=150, required=True)
+
+    class Meta:
+        fields = ('username', 'email')
+
+    def validate_username(self, value):
+        regex = re.compile(r'^[\w.@+-]+$')
+        if not re.fullmatch(regex, value):
+            raise serializers.ValidationError('Проверьте username!')
+        return value
 
 
 class CategorySerializer(serializers.ModelSerializer):
@@ -96,4 +129,3 @@ class TitleSerializer(serializers.ModelSerializer):
         model = Title
 
         fields = ('id', 'name', 'description', 'category', 'genre', 'year')
-
