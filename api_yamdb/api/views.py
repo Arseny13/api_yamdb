@@ -2,23 +2,24 @@
 from random import choice
 from string import ascii_lowercase, digits
 
-from django.contrib.auth.hashers import check_password, make_password
+from django.contrib.auth.hashers import make_password
 from django.core.mail import send_mail
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters, status, viewsets
-from rest_framework.decorators import api_view
+from rest_framework.decorators import api_view, permission_classes
 from rest_framework.generics import get_object_or_404
 from rest_framework.pagination import (
     LimitOffsetPagination,
     PageNumberPagination
 )
-from .pagination import UserPagination
 
+from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import AccessToken
 
+from .pagination import UserPagination
 from reviews.models import Category, Genre, Review, Title
 from users.models import User
 from api.filters import TitleFilter
@@ -26,7 +27,8 @@ from api.mixins import CreateListDestroyViewSet
 from api.permissions import IsAdmin, IsAdminOrReadOnly
 from api.serializers import (
     CategorySerializer, CommentSerializer,
-    ConfirmationCodeSerializer, GenreSerializer,
+    TokenSerializer,
+    SignUpSerializer, GenreSerializer,
     ReviewSerializer, TitleSerializerCreate,
     TitleSerializer, UserSerializer
 )
@@ -116,22 +118,26 @@ class UserViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAdmin]
     filter_backends = [filters.SearchFilter]
     search_fields = ['user__username', ]
+    pagination_class = PageNumberPagination
 
 
 @api_view(['POST'])
-def send_mail(request):
+@permission_classes([AllowAny])
+def send_code(request):
     """Отправляет код подтверждения на e-mail."""
-    serializer = ConfirmationCodeSerializer(data=request.data)
-    email = request.data.get('email', False)
+    serializer = SignUpSerializer(data=request.data)
+    email = request.data.get('email')
+    username = request.data.get('username')
     if serializer.is_valid():
         cc_lst = []
         for number_of_symbols in range(16):
             cc_lst.append(choice(CONFIRMATION_CODE_CHARS))
         confirmation_code = ''.join(cc_lst)
-        user = User.objects.filter(email=email).exists()
-        if not user:
-            User.objects.create_user(email=email)
-        User.objects.filter(email=email).update(
+        User.objects.get_or_create(
+            username=username,
+            email=email
+        )
+        User.objects.filter(username=username, email=email).update(
             confirmation_code=make_password(
                 confirmation_code, salt=None, hasher='default'
             )
@@ -149,19 +155,19 @@ def send_mail(request):
 @api_view(['POST'])
 def get_token(request):
     """Получает JWT-токен"""
-    serializer = ConfirmationCodeSerializer(data=request.data)
+    serializer = TokenSerializer(data=request.data)
     if serializer.is_valid():
-        email = serializer.data.get('email')
+        username = serializer.data.get('username')
         confirmation_code = serializer.data.get('confirmation_code')
-        user = get_object_or_404(User, email=email)
-        if check_password(confirmation_code, user.confirmation_code):
-            token = AccessToken.for_user(user)
-            return Response(
-                {'token': f'{token}'},
-                status=status.HTTP_201_CREATED
-            )
-        return Response({'confirmation_code': 'Неверный код подтверждения'},
-                        status=status.HTTP_400_BAD_REQUEST)
+        user, status = get_object_or_404(
+            User, username=username,
+            confirmation_code=confirmation_code
+        )
+        token = AccessToken.for_user(user)
+        return Response(
+            {'token': f'{token}'},
+            status=status.HTTP_201_CREATED
+        )
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 

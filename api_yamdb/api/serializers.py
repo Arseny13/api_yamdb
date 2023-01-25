@@ -43,10 +43,28 @@ class UserSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
-class ConfirmationCodeSerializer(serializers.Serializer):
-    """Сериализатор для кода подтверждения."""
-    email = serializers.EmailField(required=True)
-    confirmation_code = serializers.CharField(required=True)
+class TokenSerializer(serializers.Serializer):
+    """Сериализатор для токена."""
+    username = serializers.CharField(max_length=150, required=True)
+    confirmation_code = serializers.CharField(max_length=15, required=True)
+
+    class Meta:
+        model = User
+        fields = ('username', 'confirmation_code')
+
+
+class SignUpSerializer(serializers.Serializer):
+    """Сериализатор для регистариции."""
+    email = serializers.EmailField(max_length=254, required=True)
+    username = serializers.CharField(max_length=150, required=True)
+
+    class Meta:
+        fields = ('username', 'email')
+
+    def validate_username(self, value):
+        if value != r'^[\w.@+-]+\z$':
+            raise serializers.ValidationError('Проверьте username!')
+        return value
 
 
 class CategorySerializer(serializers.ModelSerializer):
@@ -96,4 +114,3 @@ class TitleSerializer(serializers.ModelSerializer):
         model = Title
 
         fields = ('id', 'name', 'description', 'category', 'genre', 'year')
-

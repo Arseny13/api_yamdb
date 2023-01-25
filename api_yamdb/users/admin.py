@@ -12,7 +12,7 @@ class UserAdmin(admin.ModelAdmin):
         "bio",
         "confirmation_code",
         "role"
-    ) 
+    )
     list_editable = ('role',)
     search_fields = ('role',)
     list_filter = ('role', )
