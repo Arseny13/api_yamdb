@@ -1,6 +1,7 @@
+from django.db.models import Avg
+
 from rest_framework import serializers
 from rest_framework.relations import SlugRelatedField
-from rest_framework.validators import UniqueTogetherValidator
 
 from reviews.models import Category, Comment, Genre, Review, Title
 from users.models import User
@@ -10,19 +11,22 @@ import datetime as dt
 
 class ReviewSerializer(serializers.ModelSerializer):
     """Сериализатор модели отзывов."""
-    author = SlugRelatedField(slug_field='username', read_only=True)
-    title = serializers.PrimaryKeyRelatedField(read_only=True)
+    author = SlugRelatedField(slug_field='username',
+                              read_only=True)
 
     class Meta:
         model = Review
         exclude = ('title',)
-        validators = [
-            UniqueTogetherValidator(
-                queryset=Review.objects.all(),
-                fields=('author', 'title',),
-                message='Повторный отзыв!'
-            )
-        ]
+
+    def validate(self, data):
+        """Проверка на повторные отзывы."""
+        if not self.context.get('request').method == 'POST':
+            return data
+        user = self.context.get('request').user
+        title_id = self.context.get('view').kwargs.get('title_id')
+        if user.reviews.filter(title_id=title_id).exists():
+            raise serializers.ValidationError('Повторный отзыв!')
+        return data
 
 
 class CommentSerializer(serializers.ModelSerializer):
@@ -40,13 +44,31 @@ class UserSerializer(serializers.ModelSerializer):
     """Сериализатор для модели пользователя."""
     class Meta:
         model = User
-        fields = '__all__'
+        fields = (
+            'username',
+            'email',
+            'first_name',
+            'last_name',
+            'bio',
+            'role'
+        )
 
 
 class ConfirmationCodeSerializer(serializers.Serializer):
     """Сериализатор для кода подтверждения."""
+
+    class Meta:
+        model = User
+        fields = ('username', 'confirmation_code')
+
+
+class SignUpSerializer(serializers.Serializer):
+    """Сериализатор для кода подтверждения."""
     email = serializers.EmailField(required=True)
-    confirmation_code = serializers.CharField(required=True)
+    username = serializers.CharField(required=True)
+
+    class Meta:
+        fields = ('username', 'email')
 
 
 class CategorySerializer(serializers.ModelSerializer):
@@ -77,7 +99,7 @@ class TitleSerializerCreate(serializers.ModelSerializer):
     class Meta:
         """Класс мета для модели Title."""
         model = Title
-        fields = ('id', 'name', 'description', 'category', 'genre', 'year')
+        fields = ('id', 'name', 'description', 'category', 'genre', 'year',)
 
     def validate_year(self, value):
         year = dt.date.today().year
@@ -90,10 +112,14 @@ class TitleSerializer(serializers.ModelSerializer):
     """Сериализатор для модели Title."""
     category = CategorySerializer()
     genre = GenreSerializer(many=True)
+    rating = serializers.SerializerMethodField()
 
     class Meta:
         """Класс мета для модели Title."""
+        fields = ('id', 'name', 'description', 'category', 'genre', 'year',
+                  'rating')
         model = Title
 
-        fields = ('id', 'name', 'description', 'category', 'genre', 'year')
-
+    def get_rating(self, obj):
+        rating = obj.reviews.aggregate(Avg('score')).get('score__avg')
+        return rating
