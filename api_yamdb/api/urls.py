@@ -6,12 +6,13 @@ from . import views
 from .views import (APIUser, CategoryViewSet, GenreViewSet, TitleViewSet,
                     UserViewSet, get_token, send_code)
 
+
 app_name = 'api'
 
 router_v1 = routers.DefaultRouter()
 
 router_v1.register(
-    r'titles/(?P<title_id>\d+)/reviews/',
+    r'titles/(?P<title_id>\d+)/reviews',
     views.ReviewViewSet,
     basename='review'
 )
