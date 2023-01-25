@@ -1,6 +1,19 @@
 from rest_framework.permissions import SAFE_METHODS, BasePermission
 
 
+class IsReadOnly(BasePermission):
+    def has_permission(self, request, view):
+        if request.method in SAFE_METHODS:
+            return True
+        return request.user.is_authenticated
+
+    def has_object_permission(self, request, view, obj):
+        if ((request.method == 'PATCH' or request.method == 'DELETE') and
+                request.user.role == 'user'):
+            return obj.author == request.user
+        return True
+
+
 class IsAdmin(BasePermission):
     def has_permission(self, request, view):
         if request.user.is_authenticated:
