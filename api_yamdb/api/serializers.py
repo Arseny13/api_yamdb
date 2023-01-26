@@ -1,13 +1,12 @@
-from django.db.models import Avg
+import datetime as dt
+import re
 
+from django.db.models import Avg
 from rest_framework import serializers
 from rest_framework.relations import SlugRelatedField
 
 from reviews.models import Category, Comment, Genre, Review, Title
-from users.models import User, CHOICES
-
-import datetime as dt
-import re
+from users.models import CHOICES, User
 
 
 class ReviewSerializer(serializers.ModelSerializer):
@@ -170,8 +169,9 @@ class TitleSerializerCreate(serializers.ModelSerializer):
         fields = ('id', 'name', 'description', 'category', 'genre', 'year',)
 
     def validate_year(self, value):
+        """Валидация для года выпуска."""
         year = dt.date.today().year
-        if value > year:
+        if year > value > 0:
             raise serializers.ValidationError('Проверьте год выпуска!')
         return value
 

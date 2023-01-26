@@ -1,7 +1,7 @@
-from django.core.management.base import BaseCommand
-from django.contrib.contenttypes.models import ContentType
-
 import csv
+
+from django.contrib.contenttypes.models import ContentType
+from django.core.management.base import BaseCommand
 
 
 class Command(BaseCommand):

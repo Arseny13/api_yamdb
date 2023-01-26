@@ -1,64 +1,64 @@
-
 from django.contrib.auth import get_user_model
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 
 User = get_user_model()
+COUNT_CHAR_TEXT = 15
 
 
 class Genre(models.Model):
-    """Класс жанра"""
+    """Класс жанра."""
     name = models.CharField(
         max_length=256,
-        verbose_name='name жанра',
+        verbose_name='имя жанра',
         help_text='Введите имя жанра',
     )
     slug = models.SlugField(
         max_length=50,
         unique=True,
-        verbose_name='Slug жанра',
+        verbose_name='слаг жанра',
         help_text='Введите слаг жанра',
     )
 
     class Meta:
         """Класс Meta для Genres описание метаданных."""
         ordering = ('id',)
-        verbose_name = 'genre'
-        verbose_name_plural = 'genres'
+        verbose_name = 'жанр'
+        verbose_name_plural = 'жанры'
 
     def __str__(self) -> str:
-        return self.name
+        return self.name[:COUNT_CHAR_TEXT]
 
 
 class Category(models.Model):
-    """Класс категории"""
+    """Класс категории."""
     name = models.CharField(
         max_length=200,
-        verbose_name='name категории',
+        verbose_name='имя категории',
         help_text='Введите имя категории',
     )
     slug = models.SlugField(
         max_length=50,
         unique=True,
-        verbose_name='Slug категории',
+        verbose_name='слаг категории',
         help_text='Введите слаг категории',
     )
 
     class Meta:
         """Класс Meta для Categories описание метаданных."""
         ordering = ('id',)
-        verbose_name = 'category'
-        verbose_name_plural = 'categories'
+        verbose_name = 'категория'
+        verbose_name_plural = 'категории'
 
     def __str__(self) -> str:
-        return self.name
+        return self.name[:COUNT_CHAR_TEXT]
 
 
 class Title(models.Model):
-    """Класс произведения"""
+    """Класс произведения."""
     name = models.CharField(
         max_length=256,
-        verbose_name='Name произведения',
+        verbose_name='имя произведения',
         help_text='Введите имя произведения',
     )
     category = models.ForeignKey(
@@ -87,11 +87,11 @@ class Title(models.Model):
     class Meta:
         """Класс Meta для Title описание метаданных."""
         ordering = ('id',)
-        verbose_name = 'title'
-        verbose_name_plural = 'titles'
+        verbose_name = 'тайтл'
+        verbose_name_plural = 'тайтлы'
 
     def __str__(self):
-        return self.name
+        return self.name[:COUNT_CHAR_TEXT]
 
 
 class GenreTitle(models.Model):

@@ -1,37 +1,28 @@
 from random import choice
 from string import ascii_lowercase, digits
 
-from django.contrib.auth.hashers import make_password, check_password
+from django.contrib.auth.hashers import check_password, make_password
 from django.core.mail import send_mail
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters, status, viewsets
-from rest_framework.decorators import api_view, permission_classes
+from rest_framework.decorators import api_view
 from rest_framework.generics import get_object_or_404
 from rest_framework.pagination import PageNumberPagination
-
-from .pagination import UserPagination
-
-from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import AccessToken
-
 from reviews.models import Category, Comment, Genre, Review, Title
-
-from users.models import User
 
 from api.filters import TitleFilter
 from api.mixins import CreateListDestroyViewSet
 from api.permissions import IsAdmin, IsAdminOrReadOnly, IsReadOnly
-from api.serializers import (
-    CategorySerializer, CommentSerializer,
-    TokenSerializer,
-    SignUpSerializer, GenreSerializer,
-    ReviewSerializer, TitleSerializerCreate,
-    TitleSerializer, UserSerializer,
-    MeSerializer
-)
+from api.serializers import (CategorySerializer, CommentSerializer,
+                             GenreSerializer, MeSerializer, ReviewSerializer,
+                             SignUpSerializer, TitleSerializer,
+                             TitleSerializerCreate, TokenSerializer,
+                             UserSerializer)
+from users.models import User
 
 
 CONFIRMATION_CODE_CHARS = tuple(ascii_lowercase + digits)
@@ -84,7 +75,7 @@ class CommentViewSet(viewsets.ModelViewSet):
 
 class APIUser(APIView):
     """Класс для переопределения запросов GET и PATCH"""
-    pagination_class = UserPagination
+    pagination_class = PageNumberPagination
 
     def get(self, request):
         if request.user.is_authenticated:
@@ -126,7 +117,6 @@ class UserViewSet(viewsets.ModelViewSet):
 
 
 @api_view(['POST'])
-@permission_classes([AllowAny])
 def send_code(request):
     """Отправляет код подтверждения на e-mail."""
     serializer = SignUpSerializer(data=request.data)
@@ -157,7 +147,6 @@ def send_code(request):
 
 
 @api_view(['POST'])
-@permission_classes([AllowAny])
 def get_token(request):
     """Получает JWT-токен"""
     serializer = TokenSerializer(data=request.data)
@@ -181,13 +170,13 @@ def get_token(request):
 class TitleViewSet(viewsets.ModelViewSet):
     """Класс ModelViewSet для Post."""
     queryset = Title.objects.all()
-
     filter_backends = (DjangoFilterBackend,)
     filterset_class = TitleFilter
     permission_classes = (IsAdminOrReadOnly,)
     pagination_class = PageNumberPagination
 
     def get_serializer_class(self):
+        """Метод изменения класса сериализера при разных методах."""
         if (
             self.action == 'create'
             or self.action == 'update'
