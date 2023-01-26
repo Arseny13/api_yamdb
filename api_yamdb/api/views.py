@@ -78,7 +78,7 @@ class APIUser(APIView):
     pagination_class = PageNumberPagination
 
     def get(self, request):
-        """Метод GET."""
+        """Переопределяет GET-запрос."""
         if request.user.is_authenticated:
             user = get_object_or_404(User, id=request.user.id)
             serializer = UserSerializer(user)
@@ -89,7 +89,7 @@ class APIUser(APIView):
         )
 
     def patch(self, request):
-        """Метод PATCH."""
+        """Переопределяет PATCH-запрос."""
         if request.user.is_authenticated:
             user = get_object_or_404(User, id=request.user.id)
             serializer = MeSerializer(user, data=request.data, partial=True)
@@ -110,11 +110,11 @@ class UserViewSet(viewsets.ModelViewSet):
     """Класс UserViewSet для User."""
     queryset = User.objects.all()
     serializer_class = UserSerializer
-    http_method_names = ['get', 'post', 'head', 'patch', 'delete']
+    http_method_names = ('get', 'post', 'head', 'patch', 'delete')
     lookup_field = 'username'
-    permission_classes = [IsAdmin]
-    filter_backends = [filters.SearchFilter]
-    search_fields = ['username', ]
+    permission_classes = (IsAdmin,)
+    filter_backends = (filters.SearchFilter,)
+    search_fields = ('username', )
     pagination_class = PageNumberPagination
 
 
