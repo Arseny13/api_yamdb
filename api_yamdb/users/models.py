@@ -2,7 +2,7 @@ from django.contrib.auth.models import AbstractUser, BaseUserManager
 from django.contrib.auth.validators import UnicodeUsernameValidator
 from django.db import models
 
-from users.validator import username_value_not_me
+from .validator import username_value_not_me
 
 CHOICES = (
     ('user', 'Пользователь'),

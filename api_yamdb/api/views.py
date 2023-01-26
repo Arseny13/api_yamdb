@@ -74,10 +74,11 @@ class CommentViewSet(viewsets.ModelViewSet):
 
 
 class APIUser(APIView):
-    """Класс для переопределения запросов GET и PATCH"""
+    """Класс для переопределения запросов GET и PATCH."""
     pagination_class = PageNumberPagination
 
     def get(self, request):
+        """Переопределяет GET-запрос."""
         if request.user.is_authenticated:
             user = get_object_or_404(User, id=request.user.id)
             serializer = UserSerializer(user)
@@ -88,6 +89,7 @@ class APIUser(APIView):
         )
 
     def patch(self, request):
+        """Переопределяет PATCH-запрос."""
         if request.user.is_authenticated:
             user = get_object_or_404(User, id=request.user.id)
             serializer = MeSerializer(user, data=request.data, partial=True)
@@ -108,11 +110,11 @@ class UserViewSet(viewsets.ModelViewSet):
     """Класс UserViewSet для User."""
     queryset = User.objects.all()
     serializer_class = UserSerializer
-    http_method_names = ['get', 'post', 'head', 'patch', 'delete']
+    http_method_names = ('get', 'post', 'head', 'patch', 'delete')
     lookup_field = 'username'
-    permission_classes = [IsAdmin]
-    filter_backends = [filters.SearchFilter]
-    search_fields = ['username', ]
+    permission_classes = (IsAdmin,)
+    filter_backends = (filters.SearchFilter,)
+    search_fields = ('username', )
     pagination_class = PageNumberPagination
 
 
@@ -148,7 +150,7 @@ def send_code(request):
 
 @api_view(['POST'])
 def get_token(request):
-    """Получает JWT-токен"""
+    """Получает JWT-токен."""
     serializer = TokenSerializer(data=request.data)
     if serializer.is_valid():
         username = serializer.data.get('username')
