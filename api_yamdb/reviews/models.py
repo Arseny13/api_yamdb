@@ -1,8 +1,8 @@
-from django.contrib.auth import get_user_model
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 
-User = get_user_model()
+from users.models import User
+
 COUNT_CHAR_TEXT = 15
 
 
@@ -105,7 +105,7 @@ class GenreTitle(models.Model):
 
 class Review(models.Model):
     """Модель отзывов."""
-    text = models.TextField()
+    text = models.TextField(verbose_name='Текст отзыва',)
     pub_date = models.DateTimeField(
         verbose_name='Дата публикации', auto_now_add=True
     )
@@ -122,6 +122,7 @@ class Review(models.Model):
         verbose_name='Рейтинг')
 
     class Meta:
+        """Класс Meta для Review описание метаданных."""
         verbose_name = 'Отзыв'
         verbose_name_plural = 'Отзывы'
         ordering = ('-pub_date',)
@@ -132,7 +133,7 @@ class Review(models.Model):
         ]
 
     def __str__(self):
-        return self.text[:15]
+        return self.text[:COUNT_CHAR_TEXT]
 
 
 class Comment(models.Model):
@@ -153,9 +154,10 @@ class Comment(models.Model):
     )
 
     class Meta:
+        """Класс Meta для Comment описание метаданных."""
         verbose_name = 'Комментарий'
         verbose_name_plural = 'Комментарии'
         ordering = ('-pub_date',)
 
     def __str__(self):
-        return self.text[:15]
+        return self.text[:COUNT_CHAR_TEXT]
