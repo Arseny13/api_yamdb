@@ -9,27 +9,26 @@ load_dotenv()
 
 SECRET_KEY = os.getenv('SECRET_KEY')
 
-# SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
 ALLOWED_HOSTS = ['*']
 
 
-# Application definition
-
 INSTALLED_APPS = [
-    'rest_framework',
-    'django_filters',
-    'djoser',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+
     'api',
     'reviews',
     'users',
+
+    'rest_framework',
+    'django_filters',
+    'djoser',
 ]
 
 MIDDLEWARE = [
