@@ -1,9 +1,9 @@
 import datetime as dt
-import re
 
 from django.db.models import Avg
 from rest_framework import serializers
 from rest_framework.relations import SlugRelatedField
+from django.core.validators import RegexValidator
 
 from reviews.models import Category, Comment, Genre, Review, Title
 from users.models import CHOICES, User
@@ -45,7 +45,13 @@ class CommentSerializer(serializers.ModelSerializer):
 class MeSerializer(serializers.ModelSerializer):
     """Сериализатор для модели пользователя."""
     email = serializers.EmailField(max_length=254, required=True)
-    username = serializers.CharField(max_length=150, required=True)
+    username = serializers.CharField(
+        max_length=150,
+        required=True,
+        validators=[
+            RegexValidator(r'^[\w.@+-]+$', message='Проверьте username!')
+        ]
+    )
 
     class Meta:
         model = User
@@ -54,17 +60,17 @@ class MeSerializer(serializers.ModelSerializer):
             'first_name', 'last_name', 'bio'
         )
 
-    def validate_username(self, value):
-        regex = re.compile(r'^[\w.@+-]+$')
-        if not re.fullmatch(regex, value):
-            raise serializers.ValidationError('Проверьте username!')
-        return value
-
 
 class UserSerializer(serializers.ModelSerializer):
     """Сериализатор для модели пользователя."""
     email = serializers.EmailField(max_length=254, required=True)
-    username = serializers.CharField(max_length=150, required=True)
+    username = serializers.CharField(
+        max_length=150,
+        required=True,
+        validators=[
+            RegexValidator(r'^[\w.@+-]+$', message='Проверьте username!')
+        ]
+    )
     role = serializers.ChoiceField(choices=CHOICES, default='user')
 
     class Meta:
@@ -75,7 +81,7 @@ class UserSerializer(serializers.ModelSerializer):
         )
 
     def validate(self, data):
-        """Проверка на повторные email."""
+        """Проверка на повторные email и username."""
         email = data.get('email')
         username = data.get('username')
         if User.objects.filter(email=email).exists():
@@ -89,12 +95,6 @@ class UserSerializer(serializers.ModelSerializer):
             if user.email != email:
                 raise serializers.ValidationError('Уже существует!')
         return data
-
-    def validate_username(self, value):
-        regex = re.compile(r'^[\w.@+-]+$')
-        if not re.fullmatch(regex, value):
-            raise serializers.ValidationError('Проверьте username!')
-        return value
 
 
 class TokenSerializer(serializers.Serializer):
@@ -110,13 +110,19 @@ class TokenSerializer(serializers.Serializer):
 class SignUpSerializer(serializers.Serializer):
     """Сериализатор для регистариции."""
     email = serializers.EmailField(max_length=254, required=True)
-    username = serializers.CharField(max_length=150, required=True)
+    username = serializers.CharField(
+        max_length=150,
+        required=True,
+        validators=[
+            RegexValidator(r'^[\w.@+-]+$', message='Проверьте username!')
+        ]
+    )
 
     class Meta:
         fields = ('username', 'email')
 
     def validate(self, data):
-        """Проверка на повторные email."""
+        """Проверка на повторные email и username."""
         email = data.get('email')
         username = data.get('username')
         if User.objects.filter(email=email).exists():
@@ -132,9 +138,7 @@ class SignUpSerializer(serializers.Serializer):
         return data
 
     def validate_username(self, value):
-        regex = re.compile(r'^[\w.@+-]+$')
-        if not re.fullmatch(regex, value):
-            raise serializers.ValidationError('Проверьте username!')
+        """Валидация для имя пользователя."""
         if value == 'me':
             raise serializers.ValidationError('Me запрещено')
         return value
@@ -193,5 +197,6 @@ class TitleSerializer(serializers.ModelSerializer):
         model = Title
 
     def get_rating(self, obj):
+        """Валидация для рейтитнга."""
         rating = obj.reviews.aggregate(Avg('score')).get('score__avg')
         return rating
