@@ -5,5 +5,5 @@ class CreateListDestroyViewSet(
     mixins.CreateModelMixin, mixins.ListModelMixin, mixins.DestroyModelMixin,
     viewsets.GenericViewSet
 ):
-    """Класс ViewSet только для создания и полученияИ и удаления объектов."""
+    """Класс ViewSet только для создания и получения и удаления объектов."""
     pass
