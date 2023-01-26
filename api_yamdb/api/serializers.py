@@ -15,6 +15,7 @@ class ReviewSerializer(serializers.ModelSerializer):
                               read_only=True)
 
     class Meta:
+        """Класс мета для модели Review."""
         model = Review
         exclude = ('title',)
 
@@ -36,6 +37,7 @@ class CommentSerializer(serializers.ModelSerializer):
     )
 
     class Meta:
+        """Класс мета для модели Comment."""
         model = Comment
         exclude = ('review',)
 

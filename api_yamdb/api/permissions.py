@@ -2,12 +2,15 @@ from rest_framework.permissions import BasePermission, SAFE_METHODS
 
 
 class IsReadOnly(BasePermission):
+    """Перминш для моделей Review, Comment."""
     def has_permission(self, request, view):
+        """GET-запрос не требует авторизации."""
         if request.method in SAFE_METHODS:
             return True
         return request.user.is_authenticated
 
     def has_object_permission(self, request, view, obj):
+        """Пользователь User не может редактировать чужой пост."""
         if (
             (request.method == 'PATCH' or request.method == 'DELETE')
             and request.user.role == 'user'
