@@ -81,7 +81,7 @@ class UserSerializer(serializers.ModelSerializer):
         )
 
     def validate(self, data):
-        """Проверка на повторные email."""
+        """Проверка на повторные email и username."""
         email = data.get('email')
         username = data.get('username')
         if User.objects.filter(email=email).exists():
@@ -122,7 +122,7 @@ class SignUpSerializer(serializers.Serializer):
         fields = ('username', 'email')
 
     def validate(self, data):
-        """Проверка на повторные email."""
+        """Проверка на повторные email и username."""
         email = data.get('email')
         username = data.get('username')
         if User.objects.filter(email=email).exists():
@@ -138,6 +138,7 @@ class SignUpSerializer(serializers.Serializer):
         return data
 
     def validate_username(self, value):
+        """Валидация для имя пользователя."""
         if value == 'me':
             raise serializers.ValidationError('Me запрещено')
         return value
