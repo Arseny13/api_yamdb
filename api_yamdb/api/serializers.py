@@ -1,9 +1,9 @@
 import datetime as dt
-import re
 
 from django.db.models import Avg
 from rest_framework import serializers
 from rest_framework.relations import SlugRelatedField
+from django.core.validators import RegexValidator
 
 from reviews.models import Category, Comment, Genre, Review, Title
 from users.models import CHOICES, User
@@ -43,7 +43,13 @@ class CommentSerializer(serializers.ModelSerializer):
 class MeSerializer(serializers.ModelSerializer):
     """Сериализатор для модели пользователя."""
     email = serializers.EmailField(max_length=254, required=True)
-    username = serializers.CharField(max_length=150, required=True)
+    username = serializers.CharField(
+        max_length=150,
+        required=True,
+        validators=[
+            RegexValidator(r'^[\w.@+-]+$', message='Проверьте username!')
+        ]
+    )
 
     class Meta:
         model = User
@@ -52,17 +58,17 @@ class MeSerializer(serializers.ModelSerializer):
             'first_name', 'last_name', 'bio'
         )
 
-    def validate_username(self, value):
-        regex = re.compile(r'^[\w.@+-]+$')
-        if not re.fullmatch(regex, value):
-            raise serializers.ValidationError('Проверьте username!')
-        return value
-
 
 class UserSerializer(serializers.ModelSerializer):
     """Сериализатор для модели пользователя."""
     email = serializers.EmailField(max_length=254, required=True)
-    username = serializers.CharField(max_length=150, required=True)
+    username = serializers.CharField(
+        max_length=150,
+        required=True,
+        validators=[
+            RegexValidator(r'^[\w.@+-]+$', message='Проверьте username!')
+        ]
+    )
     role = serializers.ChoiceField(choices=CHOICES, default='user')
 
     class Meta:
@@ -88,12 +94,6 @@ class UserSerializer(serializers.ModelSerializer):
                 raise serializers.ValidationError('Уже существует!')
         return data
 
-    def validate_username(self, value):
-        regex = re.compile(r'^[\w.@+-]+$')
-        if not re.fullmatch(regex, value):
-            raise serializers.ValidationError('Проверьте username!')
-        return value
-
 
 class TokenSerializer(serializers.Serializer):
     """Сериализатор для токена."""
@@ -108,7 +108,13 @@ class TokenSerializer(serializers.Serializer):
 class SignUpSerializer(serializers.Serializer):
     """Сериализатор для регистариции."""
     email = serializers.EmailField(max_length=254, required=True)
-    username = serializers.CharField(max_length=150, required=True)
+    username = serializers.CharField(
+        max_length=150,
+        required=True,
+        validators=[
+            RegexValidator(r'^[\w.@+-]+$', message='Проверьте username!')
+        ]
+    )
 
     class Meta:
         fields = ('username', 'email')
@@ -130,9 +136,6 @@ class SignUpSerializer(serializers.Serializer):
         return data
 
     def validate_username(self, value):
-        regex = re.compile(r'^[\w.@+-]+$')
-        if not re.fullmatch(regex, value):
-            raise serializers.ValidationError('Проверьте username!')
         if value == 'me':
             raise serializers.ValidationError('Me запрещено')
         return value

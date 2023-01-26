@@ -74,10 +74,11 @@ class CommentViewSet(viewsets.ModelViewSet):
 
 
 class APIUser(APIView):
-    """Класс для переопределения запросов GET и PATCH"""
+    """Класс для переопределения запросов GET и PATCH."""
     pagination_class = PageNumberPagination
 
     def get(self, request):
+        """Метод GET."""
         if request.user.is_authenticated:
             user = get_object_or_404(User, id=request.user.id)
             serializer = UserSerializer(user)
@@ -88,6 +89,7 @@ class APIUser(APIView):
         )
 
     def patch(self, request):
+        """Метод PATCH."""
         if request.user.is_authenticated:
             user = get_object_or_404(User, id=request.user.id)
             serializer = MeSerializer(user, data=request.data, partial=True)
@@ -148,7 +150,7 @@ def send_code(request):
 
 @api_view(['POST'])
 def get_token(request):
-    """Получает JWT-токен"""
+    """Получает JWT-токен."""
     serializer = TokenSerializer(data=request.data)
     if serializer.is_valid():
         username = serializer.data.get('username')
