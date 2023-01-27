@@ -1,7 +1,8 @@
 from django.db.models import Avg
 from rest_framework import serializers
 from rest_framework.relations import SlugRelatedField
-from django.core.validators import RegexValidator, UniqueValidator
+from django.core.validators import RegexValidator
+from rest_framework.validators import UniqueValidator
 
 from reviews.models import Category, Comment, Genre, Review, Title
 from users.models import CHOICES, User
