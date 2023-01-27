@@ -97,7 +97,6 @@ class User(AbstractUser):
         default=USER,
     )
 
-
     objects = CustomUserManager()
 
     REQUIRED_FIELDS = ('email',)
@@ -110,7 +109,7 @@ class User(AbstractUser):
     def is_moderator(self):
         """Проверяет, если пользователь Модератор."""
         return self.role == 'moderator' or self.is_staff
-    
+
     class Meta:
         verbose_name = 'Пользователь'
         verbose_name_plural = 'Пользователи'
