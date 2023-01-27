@@ -138,8 +138,6 @@ def send_code(request):
                 confirmation_code, salt=None, hasher='default'
             )
         )
-        print('ууууууууууууууууууу')
-        print('Добавил еще один принт')
         mail_subject = 'Код подтверждения на Yamdb.ru'
         message = f'Ваш код подтверждения: {confirmation_code}'
         send_mail(mail_subject, message, 'Yamdb.ru <admin@yamdb.ru>', [email])
