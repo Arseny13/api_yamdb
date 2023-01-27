@@ -4,41 +4,50 @@ from django.db import models
 
 from .validator import username_value_not_me
 
+USER = 'user'
+MODERATOR = 'moderator'
+ADMIN = 'admin'
+
 CHOICES = (
-    ('user', 'Пользователь'),
-    ('moderator', 'Модератор'),
-    ('admin', 'Администратор'),
+    (USER, 'Пользователь'),
+    (MODERATOR, 'Модератор'),
+    (ADMIN, 'Администратор'),
 )
 
 
 class CustomUserManager(BaseUserManager):
     """Класс для создания обычного пользователя/суперпользователя."""
 
-    def create_superuser(self, email, password, **kwargs):
+    def create_superuser(self, username, email, password, **kwargs):
         """
         Cоздает и сохраняет суперпользователя
         с указанным адресом электронной почты и паролем.
         """
-        user = self.model(
+        if password is None:
+            raise TypeError('Superusers must have a password.')
+
+        kwargs.setdefault('is_staff', True)
+        kwargs.setdefault('is_superuser', True)
+        kwargs.setdefault('is_active', True)
+
+        return self.create_user(
+            username=username,
             email=email,
-            is_staff=True,
-            is_superuser=True,
+            password=password,
             **kwargs
         )
-        user.is_admin = True
-        user.set_password(password)
-        user.save()
-        return user
 
-    def create_user(self, email, password=None, **kwargs):
+    def create_user(self, username, email, password=None, **kwargs):
         """
         Cоздает и сохраняет пользователя
         с указанным адресом электронной почты и паролем.
         """
-        if not email:
-            raise ValueError('У пользователя должен быть e-mail')
-        user = self.model(email=email, **kwargs)
-        user.set_password(password)
+        email = self.normalize_email(email)
+        user = self.model(username=username, email=email, **kwargs)
+        if password is None:
+            user.set_unusable_password()
+        else:
+            user.set_password(password)
         user.save()
         return user
 
@@ -52,7 +61,7 @@ class User(AbstractUser):
         'Ник пользователя',
         max_length=150,
         unique=True,
-        validators=[username_value_not_me]
+        validators=(username_value_not_me,)
     )
 
     first_name = models.CharField(
@@ -78,27 +87,30 @@ class User(AbstractUser):
     )
     confirmation_code = models.CharField(
         'Код подтверждения',
-        max_length=15,
+        max_length=36,
         null=True
     )
     role = models.CharField(
         'Кем является',
         choices=CHOICES,
         max_length=15,
-        default='user'
+        default=USER,
     )
-
-    is_admin = models.BooleanField(default=False)
 
     objects = CustomUserManager()
 
-    REQUIRED_FIELDS = ['email']
+    REQUIRED_FIELDS = ('email',)
     USERNAME_FIELDS = 'email'
+
+    def is_admin(self):
+        """Проверяет, если пользователь Администратор."""
+        return self.role == 'admin' or self.is_superuser
+
+    def is_moderator(self):
+        """Проверяет, если пользователь Модератор."""
+        return self.role == 'moderator' or self.is_staff
 
     class Meta:
         verbose_name = 'Пользователь'
         verbose_name_plural = 'Пользователи'
         ordering = ('id',)
-
-    def __str__(self):
-        return str(self.username)

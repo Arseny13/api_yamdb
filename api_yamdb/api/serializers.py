@@ -1,9 +1,8 @@
-import datetime as dt
-
 from django.db.models import Avg
 from rest_framework import serializers
 from rest_framework.relations import SlugRelatedField
 from django.core.validators import RegexValidator
+from rest_framework.validators import UniqueValidator
 
 from reviews.models import Category, Comment, Genre, Review, Title
 from users.models import CHOICES, User
@@ -44,12 +43,17 @@ class CommentSerializer(serializers.ModelSerializer):
 
 class MeSerializer(serializers.ModelSerializer):
     """Сериализатор для модели пользователя."""
-    email = serializers.EmailField(max_length=254, required=True)
+    email = serializers.EmailField(
+        max_length=254,
+        required=True,
+        validators=[UniqueValidator(queryset=User.objects.all())]
+    )
     username = serializers.CharField(
         max_length=150,
         required=True,
         validators=[
-            RegexValidator(r'^[\w.@+-]+$', message='Проверьте username!')
+            RegexValidator(r'^[\w.@+-]+$', message='Проверьте username!'),
+            UniqueValidator(queryset=User.objects.all())
         ]
     )
 
@@ -63,12 +67,17 @@ class MeSerializer(serializers.ModelSerializer):
 
 class UserSerializer(serializers.ModelSerializer):
     """Сериализатор для модели пользователя."""
-    email = serializers.EmailField(max_length=254, required=True)
+    email = serializers.EmailField(
+        max_length=254,
+        required=True,
+        validators=[UniqueValidator(queryset=User.objects.all())]
+    )
     username = serializers.CharField(
         max_length=150,
         required=True,
         validators=[
-            RegexValidator(r'^[\w.@+-]+$', message='Проверьте username!')
+            RegexValidator(r'^[\w.@+-]+$', message='Проверьте username!'),
+            UniqueValidator(queryset=User.objects.all())
         ]
     )
     role = serializers.ChoiceField(choices=CHOICES, default='user')
@@ -79,22 +88,6 @@ class UserSerializer(serializers.ModelSerializer):
             'username', 'email', 'role',
             'first_name', 'last_name', 'bio'
         )
-
-    def validate(self, data):
-        """Проверка на повторные email и username."""
-        email = data.get('email')
-        username = data.get('username')
-        if User.objects.filter(email=email).exists():
-            user = User.objects.get(email=email)
-            if user.username != username:
-                raise serializers.ValidationError(
-                    'Уже username  c данной почтой существует!'
-                )
-        if User.objects.filter(username=username).exists():
-            user = User.objects.get(username=username)
-            if user.email != email:
-                raise serializers.ValidationError('Уже существует!')
-        return data
 
 
 class TokenSerializer(serializers.Serializer):
@@ -173,15 +166,6 @@ class TitleSerializerCreate(serializers.ModelSerializer):
         """Класс мета для модели Title."""
         model = Title
         fields = ('id', 'name', 'description', 'category', 'genre', 'year',)
-
-    def validate_year(self, value):
-        """Валидация для года выпуска."""
-        year = dt.date.today().year
-        if year < value:
-            raise serializers.ValidationError('Проверьте год выпуска!')
-        if value < 0:
-            raise serializers.ValidationError('Год выпуска с минусом!')
-        return value
 
 
 class TitleSerializer(serializers.ModelSerializer):

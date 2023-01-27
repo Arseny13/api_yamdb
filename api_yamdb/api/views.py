@@ -1,5 +1,4 @@
-from random import choice
-from string import ascii_lowercase, digits
+from uuid import uuid4
 
 from django.contrib.auth.hashers import check_password, make_password
 from django.core.mail import send_mail
@@ -23,9 +22,6 @@ from api.serializers import (CategorySerializer, CommentSerializer,
                              TitleSerializerCreate, TokenSerializer,
                              UserSerializer)
 from users.models import User
-
-
-CONFIRMATION_CODE_CHARS = tuple(ascii_lowercase + digits)
 
 
 class ReviewViewSet(viewsets.ModelViewSet):
@@ -125,10 +121,7 @@ def send_code(request):
     email = request.data.get('email')
     username = request.data.get('username')
     if serializer.is_valid():
-        cc_lst = []
-        for number_of_symbols in range(16):
-            cc_lst.append(choice(CONFIRMATION_CODE_CHARS))
-        confirmation_code = ''.join(cc_lst)
+        confirmation_code = str(uuid4())
         User.objects.get_or_create(
             username=username,
             email=email

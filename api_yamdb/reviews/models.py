@@ -1,22 +1,25 @@
+import datetime as dt
+
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 
 from users.models import User
 
 COUNT_CHAR_TEXT = 15
+CURRENT_YEAR = dt.date.today().year
 
 
 class Genre(models.Model):
     """Класс жанра."""
     name = models.CharField(
+        'Имя жанра',
         max_length=256,
-        verbose_name='имя жанра',
         help_text='Введите имя жанра',
     )
     slug = models.SlugField(
+        'Cлаг жанра',
         max_length=50,
         unique=True,
-        verbose_name='слаг жанра',
         help_text='Введите слаг жанра',
     )
 
@@ -33,14 +36,14 @@ class Genre(models.Model):
 class Category(models.Model):
     """Класс категории."""
     name = models.CharField(
+        'Имя категории',
         max_length=200,
-        verbose_name='имя категории',
         help_text='Введите имя категории',
     )
     slug = models.SlugField(
+        'Cлаг категории',
         max_length=50,
         unique=True,
-        verbose_name='слаг категории',
         help_text='Введите слаг категории',
     )
 
@@ -57,8 +60,8 @@ class Category(models.Model):
 class Title(models.Model):
     """Класс произведения."""
     name = models.CharField(
+        'Имя произведения',
         max_length=256,
-        verbose_name='имя произведения',
         help_text='Введите имя произведения',
     )
     category = models.ForeignKey(
@@ -73,14 +76,16 @@ class Title(models.Model):
         Genre,
         through='GenreTitle',
     )
-    year = models.IntegerField(
-        null=True,
+    year = models.PositiveSmallIntegerField(
+        'Год выпуска',
         blank=True,
-        verbose_name='Год выпуска',
         help_text='Введите год выпуска',
+        validators=[
+            MaxValueValidator(CURRENT_YEAR),
+        ]
     )
     description = models.TextField(
-        verbose_name='Описание тайтла',
+        'Описание тайтла',
         help_text='Введите описание тайтла'
     )
 
@@ -105,9 +110,9 @@ class GenreTitle(models.Model):
 
 class Review(models.Model):
     """Модель отзывов."""
-    text = models.TextField(verbose_name='Текст отзыва',)
+    text = models.TextField('Текст отзыва',)
     pub_date = models.DateTimeField(
-        verbose_name='Дата публикации', auto_now_add=True
+        'Дата публикации', auto_now_add=True
     )
     author = models.ForeignKey(
         User, on_delete=models.CASCADE, verbose_name='Автор',
@@ -118,8 +123,9 @@ class Review(models.Model):
         related_name='reviews'
     )
     score = models.PositiveSmallIntegerField(
+        'Рейтинг',
         validators=[MinValueValidator(1), MaxValueValidator(10)],
-        verbose_name='Рейтинг')
+    )
 
     class Meta:
         """Класс Meta для Review описание метаданных."""
@@ -147,10 +153,10 @@ class Comment(models.Model):
         related_name='comments'
     )
     text = models.TextField(
-        verbose_name='Текст комментария',
+        'Текст комментария',
     )
     pub_date = models.DateTimeField(
-        verbose_name='Дата добавления', auto_now_add=True, db_index=True
+        'Дата добавления', auto_now_add=True, db_index=True
     )
 
     class Meta:
