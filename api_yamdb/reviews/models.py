@@ -1,22 +1,25 @@
+import datetime as dt
+
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 
 from users.models import User
 
 COUNT_CHAR_TEXT = 15
+CURRENT_YEAR = dt.date.today().year
 
 
 class Genre(models.Model):
     """Класс жанра."""
     name = models.CharField(
+        'Имя жанра',
         max_length=256,
-        verbose_name='имя жанра',
         help_text='Введите имя жанра',
     )
     slug = models.SlugField(
+        'Cлаг жанра',
         max_length=50,
         unique=True,
-        verbose_name='слаг жанра',
         help_text='Введите слаг жанра',
     )
 
@@ -33,14 +36,14 @@ class Genre(models.Model):
 class Category(models.Model):
     """Класс категории."""
     name = models.CharField(
+        'Имя категории',
         max_length=200,
-        verbose_name='имя категории',
         help_text='Введите имя категории',
     )
     slug = models.SlugField(
+        'Cлаг категории',
         max_length=50,
         unique=True,
-        verbose_name='слаг категории',
         help_text='Введите слаг категории',
     )
 
@@ -57,8 +60,8 @@ class Category(models.Model):
 class Title(models.Model):
     """Класс произведения."""
     name = models.CharField(
+        'Имя произведения',
         max_length=256,
-        verbose_name='имя произведения',
         help_text='Введите имя произведения',
     )
     category = models.ForeignKey(
@@ -73,14 +76,16 @@ class Title(models.Model):
         Genre,
         through='GenreTitle',
     )
-    year = models.IntegerField(
-        null=True,
+    year = models.PositiveSmallIntegerField(
+        'Год выпуска',
         blank=True,
-        verbose_name='Год выпуска',
         help_text='Введите год выпуска',
+        validators=[
+            MaxValueValidator(CURRENT_YEAR),
+        ]
     )
     description = models.TextField(
-        verbose_name='Описание тайтла',
+        'Описание тайтла',
         help_text='Введите описание тайтла'
     )
 
