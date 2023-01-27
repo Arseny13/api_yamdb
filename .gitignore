@@ -149,3 +149,4 @@ dmypy.json
 media/
 static/
 templates/
+sent_emails/

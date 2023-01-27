@@ -40,22 +40,33 @@ https://github.com/IvanZaycev0717
 
 <h2>Установка проекта на OS Windows</h2>
 
-1. Клонировать репозиторий, создать и активировать виртуальное окружение:
+**1. Клонировать репозиторий, создать и активировать виртуальное окружение:**
 
-_git clone https://github.com/Arseny13/api_yamdb.git
-cd api_yatube
-python -m venv venv
-source venv/Scripts/activate_
+_git clone https://github.com/Arseny13/api_yamdb.git_
 
-2. Установить зависимости из файла requirements.txt:
+_cd api_yatube_
+
+_python -m venv venv_
+
+_source venv/Scripts/activate_
+
+
+
+**2. Установить зависимости из файла requirements.txt:**
 
 _pip install -r requirements.txt_
 
-3. Выполнить миграции:
+**3. Перейти в папку с manage.py и выполнить миграции:**
+
+_cd api_yatube_
+
+_python manage.py makemigrations_
 
 _python manage.py migrate_
 
-4. Запустить проект:
+**4. Создать сепурпользователя и запустить проект:**
+
+_python manage.py createsuperuser_
 
 _python manage.py runserver_
 
@@ -64,6 +75,48 @@ _python manage.py runserver_
 Для того чтобы получить, описанные понятным языком эндпоинты и настройки, да ещё с примерами запросов, да ещё с образцами ответов! Читай ReDoc, документация в этом формате доступна по ссылке:
 
 _http://127.0.0.1:8000/redoc/_
+
+<h2>Как работать с API проекта YaMDb</h2>
+
+**1. Вначале надо пользователю надо зарегистрироваться**
+
+POST localhost:8000/api/v1/signup/
+Content-Type: application/json
+
+{
+  "username": "name_of_user",
+  "email": "name@yamdb.ru"
+}
+
+
+**2. На указанную почту придет письмо с кодом подтверждения**
+
+**3. Пользователь отправляет POST-запрос с параметрами username и confirmation_code на эндпоинт /api/v1/auth/token/, в ответе на запрос ему приходит JWT-токен.**
+
+*Пример такого запроса:*
+
+POST localhost:8000/api/v1/auth/token/
+Content-Type: application/json
+
+{
+  "username": "example_user",
+  "password": "123456"
+}
+
+*Пример ответ от сервера:*
+
+"token: eyJ0eXAiOiJKV1Q..."
+
+**4. Если вы хотите добавить отзыв:**
+
+POST http://localhost:8000/api/v1/titles/{title_id}/reviews/
+Content-Type: application/json
+Authorization: Bearer "eyJ0eXAiOi..."
+
+{
+    "text": "Мой отзыв",
+    "score": 1
+}
 
 <h2>Используемые технологии</h2>
 
