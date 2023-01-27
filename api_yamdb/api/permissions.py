@@ -5,18 +5,14 @@ class IsReadOnly(BasePermission):
     """Перминш для моделей Review, Comment."""
     def has_permission(self, request, view):
         """GET-запрос не требует авторизации."""
-        if request.method in SAFE_METHODS:
-            return True
-        return request.user.is_authenticated
+        return request.method in SAFE_METHODS or request.user.is_authenticated
 
     def has_object_permission(self, request, view, obj):
         """Пользователь User не может редактировать чужой пост."""
-        if (
+        return (
             (request.method == 'PATCH' or request.method == 'DELETE')
             and request.user.role == 'user'
-        ):
-            return obj.author == request.user
-        return True
+        ) and obj.author == request.user
 
 
 class IsAdmin(BasePermission):
