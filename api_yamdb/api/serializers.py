@@ -43,12 +43,17 @@ class CommentSerializer(serializers.ModelSerializer):
 
 class MeSerializer(serializers.ModelSerializer):
     """Сериализатор для модели пользователя."""
-    email = serializers.EmailField(max_length=254, required=True)
+    email = serializers.EmailField(
+        max_length=254,
+        required=True,
+        validators=[UniqueValidator(queryset=User.objects.all())]
+    )
     username = serializers.CharField(
         max_length=150,
         required=True,
         validators=[
-            RegexValidator(r'^[\w.@+-]+$', message='Проверьте username!')
+            RegexValidator(r'^[\w.@+-]+$', message='Проверьте username!'),
+            UniqueValidator(queryset=User.objects.all())
         ]
     )
 
