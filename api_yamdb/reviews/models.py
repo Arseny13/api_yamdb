@@ -131,11 +131,11 @@ class Review(models.Model):
         verbose_name = 'Отзыв'
         verbose_name_plural = 'Отзывы'
         ordering = ('-pub_date',)
-        constraints = [
+        constraints = (
             models.UniqueConstraint(
                 fields=['author', 'title'], name="unique_title_author"
             ),
-        ]
+        )
 
     def __str__(self):
         return self.text[:COUNT_CHAR_TEXT]
