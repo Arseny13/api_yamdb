@@ -46,15 +46,15 @@ class MeSerializer(serializers.ModelSerializer):
     email = serializers.EmailField(
         max_length=254,
         required=True,
-        validators=[UniqueValidator(queryset=User.objects.all())]
+        validators=(UniqueValidator(queryset=User.objects.all()),)
     )
     username = serializers.CharField(
         max_length=150,
         required=True,
-        validators=[
+        validators=(
             RegexValidator(r'^[\w.@+-]+$', message='Проверьте username!'),
             UniqueValidator(queryset=User.objects.all())
-        ]
+        )
     )
 
     class Meta:
@@ -106,9 +106,9 @@ class SignUpSerializer(serializers.Serializer):
     username = serializers.CharField(
         max_length=150,
         required=True,
-        validators=[
-            RegexValidator(r'^[\w.@+-]+$', message='Проверьте username!')
-        ]
+        validators=(
+            RegexValidator(r'^[\w.@+-]+$', message='Проверьте username!'),
+        )
     )
 
     class Meta:
