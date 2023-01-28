@@ -102,13 +102,20 @@ class User(AbstractUser):
     REQUIRED_FIELDS = ('email',)
     USERNAME_FIELDS = 'email'
 
+    @property
+    def is_user(self):
+        """Проверяет, если пользователь Юзер."""
+        return self.role == USER
+
+    @property
     def is_admin(self):
         """Проверяет, если пользователь Администратор."""
-        return self.role == 'admin' or self.is_superuser
+        return self.role == ADMIN or self.is_superuser
 
+    @property
     def is_moderator(self):
         """Проверяет, если пользователь Модератор."""
-        return self.role == 'moderator' or self.is_staff
+        return self.role == MODERATOR or self.is_staff
 
     class Meta:
         verbose_name = 'Пользователь'

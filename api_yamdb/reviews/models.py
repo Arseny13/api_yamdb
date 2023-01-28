@@ -1,12 +1,11 @@
-import datetime as dt
-
+from django.utils import timezone
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 
 from users.models import User
 
 COUNT_CHAR_TEXT = 15
-CURRENT_YEAR = dt.date.today().year
+CURRENT_YEAR = timezone.now().year
 
 
 class Genre(models.Model):
@@ -80,9 +79,9 @@ class Title(models.Model):
         'Год выпуска',
         blank=True,
         help_text='Введите год выпуска',
-        validators=[
+        validators=(
             MaxValueValidator(CURRENT_YEAR),
-        ]
+        )
     )
     description = models.TextField(
         'Описание тайтла',
@@ -124,7 +123,7 @@ class Review(models.Model):
     )
     score = models.PositiveSmallIntegerField(
         'Рейтинг',
-        validators=[MinValueValidator(1), MaxValueValidator(10)],
+        validators=(MinValueValidator(1), MaxValueValidator(10)),
     )
 
     class Meta:
@@ -132,11 +131,11 @@ class Review(models.Model):
         verbose_name = 'Отзыв'
         verbose_name_plural = 'Отзывы'
         ordering = ('-pub_date',)
-        constraints = [
+        constraints = (
             models.UniqueConstraint(
                 fields=['author', 'title'], name="unique_title_author"
             ),
-        ]
+        )
 
     def __str__(self):
         return self.text[:COUNT_CHAR_TEXT]
