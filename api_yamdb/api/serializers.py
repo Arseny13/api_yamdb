@@ -5,7 +5,7 @@ from django.core.validators import RegexValidator
 from rest_framework.validators import UniqueValidator
 
 from reviews.models import Category, Comment, Genre, Review, Title
-from users.models import CHOICES, User
+from users.models import CHOICES, User, USER
 
 
 class ReviewSerializer(serializers.ModelSerializer):
@@ -70,17 +70,17 @@ class UserSerializer(serializers.ModelSerializer):
     email = serializers.EmailField(
         max_length=254,
         required=True,
-        validators=[UniqueValidator(queryset=User.objects.all())]
+        validators=(UniqueValidator(queryset=User.objects.all()),)
     )
     username = serializers.CharField(
         max_length=150,
         required=True,
-        validators=[
+        validators=(
             RegexValidator(r'^[\w.@+-]+$', message='Проверьте username!'),
-            UniqueValidator(queryset=User.objects.all())
-        ]
+            UniqueValidator(queryset=User.objects.all()),
+        )
     )
-    role = serializers.ChoiceField(choices=CHOICES, default='user')
+    role = serializers.ChoiceField(choices=CHOICES, default=USER)
 
     class Meta:
         model = User
@@ -101,7 +101,7 @@ class TokenSerializer(serializers.Serializer):
 
 
 class SignUpSerializer(serializers.Serializer):
-    """Сериализатор для регистариции."""
+    """Сериализатор для регистрации."""
     email = serializers.EmailField(max_length=254, required=True)
     username = serializers.CharField(
         max_length=150,
