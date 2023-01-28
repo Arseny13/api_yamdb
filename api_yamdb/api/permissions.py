@@ -11,7 +11,7 @@ class IsReadOnly(BasePermission):
         """Пользователь User не может редактировать чужой пост."""
         return (
             request.method in SAFE_METHODS or obj.author == request.user
-            or request.user.role != 'user'
+            or not request.user.is_user
         )
 
 
@@ -20,7 +20,7 @@ class IsAdmin(BasePermission):
     def has_permission(self, request, view):
         return (
             request.user.is_authenticated
-            and (request.user.is_staff or request.user.is_admin())
+            and (request.user.is_staff or request.user.is_admin)
         )
 
 
@@ -31,6 +31,6 @@ class IsAdminOrReadOnly(BasePermission):
             request.method in SAFE_METHODS
             or (
                 request.user.is_authenticated
-                and (request.user.is_staff or request.user.is_admin())
+                and (request.user.is_staff or request.user.is_admin)
             )
         )

@@ -104,7 +104,7 @@ class User(AbstractUser):
 
     @property
     def is_user(self):
-        """Проверяет, если пользователь Администратор."""
+        """Проверяет, если пользователь Юзер."""
         return self.role == USER
 
     @property
