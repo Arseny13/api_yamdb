@@ -77,7 +77,6 @@ class Title(models.Model):
     )
     year = models.PositiveSmallIntegerField(
         'Год выпуска',
-        blank=True,
         help_text='Введите год выпуска',
         validators=(
             MaxValueValidator(CURRENT_YEAR),
@@ -85,6 +84,8 @@ class Title(models.Model):
     )
     description = models.TextField(
         'Описание тайтла',
+        null=True,
+        blank=True,
         help_text='Введите описание тайтла'
     )
 

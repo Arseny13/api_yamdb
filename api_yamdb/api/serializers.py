@@ -121,13 +121,15 @@ class SignUpSerializer(serializers.Serializer):
         if User.objects.filter(email=email).exists():
             user = User.objects.get(email=email)
             if user.username != username:
-                raise serializers.ValidationError(
-                    'Уже username  c данной почтой существует!'
-                )
+                raise serializers.ValidationError({
+                    'email': 'Данная почта уже существует!'
+                })
         if User.objects.filter(username=username).exists():
             user = User.objects.get(username=username)
             if user.email != email:
-                raise serializers.ValidationError('Уже существует!')
+                raise serializers.ValidationError({
+                    'username': 'Данный username уже существует!'
+                })
         return data
 
     def validate_username(self, value):
@@ -166,6 +168,27 @@ class TitleSerializerCreate(serializers.ModelSerializer):
         """Класс мета для модели Title."""
         model = Title
         fields = ('id', 'name', 'description', 'category', 'genre', 'year',)
+
+    def validate_genre(self, value):
+        """Валидация для жанров."""
+        if not value:
+            raise serializers.ValidationError('Проверьте genre')
+        return value
+
+    def to_representation(self, instance):
+        """Правильный вывод до ТЗ."""
+        data = super(TitleSerializerCreate, self).to_representation(instance)
+        data['category'] = {
+            "name": instance.category.name,
+            "slug": instance.category.slug
+        }
+        data['genre'] = [
+            {
+                "name": genre.name,
+                "slug": genre.slug
+            } for genre in instance.genre.all()
+        ]
+        return data
 
 
 class TitleSerializer(serializers.ModelSerializer):
